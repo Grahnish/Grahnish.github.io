@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sims4 Room Generator</title>
+</head>
+<body style="background-color: rgb(44, 43, 43);font-family: fantasy">
+<h1 style="color: darkslategray; font-family: fantasy;
+text-align: center;
+font-size: 69px;
+text-shadow: 2px 2px 4px #000000;
+text-decoration: underline;">
+    Sims4 Random Room Generator
+</h1>
+<br>
+<div style="display: flex; flex-direction: column; align-items: center;">
+    <input id="tileInput" type="number" style="text-align: center; resize: none; width: 220px; font-size: 22px;" placeholder="Enter the Amount of tiles">
+    <br>
+    <button id="generateBtn" style="font-size:large; padding: 20px;">Generate Room</button>
+    <p id="result" style="color: white; font-size: 24px; margin-top: 20px;"></p>
+</div>
+<script>
+const gridSize = 16;
+const shapes = ["Random"];
+
+function drawRandomClumpedRoom(grid, tiles) {
+    // Start from center
+    let x = Math.floor(gridSize / 2);
+    let y = Math.floor(gridSize / 2);
+    grid[x][y] = 1;
+    let placed = 1;
+
+    // Store all edge tiles
+    let edgeTiles = [[x, y]];
+
+    while (placed < tiles && edgeTiles.length > 0) {
+        // Pick a random edge tile
+        let idx = Math.floor(Math.random() * edgeTiles.length);
+        let [ex, ey] = edgeTiles[idx];
+
+        // Find all empty neighbors
+        let neighbors = [];
+        for (let [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+            let nx = ex + dx, ny = ey + dy;
+            if (
+                nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize &&
+                grid[nx][ny] === 0
+            ) {
+                neighbors.push([nx, ny]);
+            }
+        }
+
+        if (neighbors.length > 0) {
+            // Pick a random neighbor and fill it
+            let [nx, ny] = neighbors[Math.floor(Math.random() * neighbors.length)];
+            grid[nx][ny] = 1;
+            placed++;
+            edgeTiles.push([nx, ny]);
+        } else {
+            // No empty neighbors, remove this edge tile
+            edgeTiles.splice(idx, 1);
+        }
+    }
+}
+
+function drawRoom(grid, shape, tiles) {
+    drawRandomClumpedRoom(grid, tiles);
+}
+
+document.getElementById('generateBtn').onclick = function() {
+    const tiles = parseInt(document.getElementById('tileInput').value.trim());
+    if (!tiles || isNaN(tiles) || tiles <= 0 || tiles > gridSize * gridSize) {
+        document.getElementById('result').textContent = "Please enter a valid number of tiles (1-" + (gridSize * gridSize) + ").";
+        return;
+    }
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    let grid = Array.from({length: gridSize}, () => Array(gridSize).fill(0));
+    drawRoom(grid, shape, tiles);
+    let html = `<div style='display:inline-block; background:#222; padding:24px;'><div style='color:white;text-align:center;margin-bottom:16px; font-size:28px;'>${shape}</div>`;
+    for (let i = 0; i < gridSize; i++) {
+        html += "<div style='height:24px;'>";
+        for (let j = 0; j < gridSize; j++) {
+            html += `<span style="display:inline-block; width:24px; height:24px; margin:2px; background:${grid[i][j] ? '#4caf50' : '#444'}; border-radius:6px;"></span>`;
+        }
+        html += "</div>";
+    }
+    html += "</div>";
+    document.getElementById('result').innerHTML = html;
+};
+</script>
+</body>
+</html>
